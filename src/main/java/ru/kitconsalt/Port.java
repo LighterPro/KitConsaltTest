@@ -6,14 +6,15 @@ import java.util.stream.IntStream;
 
 public class Port {
     String[] indexes;
-    Integer[][] arrayOfConvertedIndexes;
 
     public Port(String[] indexes) {
-        assert indexes != null;
-        assert indexes.length > 0;
+        if (indexes == null || indexes.length == 0) {
+            throw new RuntimeException("Input data must not be empty");
+        }
         this.indexes = indexes;
     }
 
+    //Метод, преобразовывающий массив строк indexes в массив последовательностей чисел
     public Integer[][] convert(String[] indexes) {
         Integer[][] result = new Integer[indexes.length][];
 
@@ -24,12 +25,13 @@ public class Port {
         return result;
     }
 
-    private static Integer[] convertStringToInts(String string) {
-        String[] split = string.trim().split("\\s*,\\s*");
+    public static Integer[] convertStringToInts(String origString) {
+        String string = origString.trim().replaceFirst("^,+", "");
+        String[] split = string.split("\\s*,\\s*");
         ArrayList<Integer> list = new ArrayList<>();
 
         for (String s : split) {
-            boolean isIntRange = s.matches("-?\\d+ *- *-?\\d+");
+            boolean isIntRange = s.matches("-?\\d+\\s*-\\s*-?\\d+");
 
             if (isIntRange) {
                 list.addAll(revealIntRange(s));
@@ -42,33 +44,33 @@ public class Port {
         return result;
     }
 
-    private static List<Integer> revealIntRange(String rangeString) {
-        String[] numbers = rangeString.split(" *- *");
+    public static List<Integer> revealIntRange(String rangeString) {
+        String[] numbers = rangeString.split("(?<=\\d)\\s*-\\s*");
 
         int start = Integer.parseInt(numbers[0]);
         int end = Integer.parseInt(numbers[1]);
 
-        try {
-            if (start > end) {
-                throw new IntRangeFormatException("Integer range \"" + rangeString + "\" has wrong format. Range must start with a lower number.");
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        if (start > end) {
+            throw new RuntimeException("Integer range \"" + rangeString +
+                    "\" has wrong format. Range must start with a lower number.");
         }
 
-        return IntStream.range(start, end + 1).boxed().collect(Collectors.toList());
+        return IntStream.range(start, end + 1)
+                .boxed()
+                .collect(Collectors.toList());
     }
 
-    public <T> LinkedHashSet<List<T>> getCartesianProduct(List<List<T>> lists) {
+    public <T> LinkedHashSet<List<T>> getUniqCombinations(T[][] array) {
+        List<List<T>> lists = twoDArrayToListOfLists(array);
         LinkedHashSet<List<T>> resultSet = new LinkedHashSet<>();
         product(resultSet, new ArrayList<>(), lists);
         return resultSet;
     }
 
-    private static <T> void product(Set<List<T>> resultSet, List<T> existingCollection, List<List<T>> listOfLists) {
+    //Метод, возвращающий всевозможные уникальные упорядоченные группы элементов полученных массивов чисел
+    public static <T> void product(Set<List<T>> resultSet, List<T> existingCollection, List<List<T>> listOfLists) {
         for (T value : listOfLists.get(0)) {
-            List<T> newCollection = new ArrayList<>();
-            newCollection.addAll(existingCollection);
+            List<T> newCollection = new ArrayList<>(existingCollection);
             newCollection.add(value);
 
             if (listOfLists.size() == 1) {
@@ -83,14 +85,12 @@ public class Port {
         }
     }
 
-    private static <T> List<List<T>> twoDArrayToListOfLists(T[][] twoDArray) {
+    public static <T> List<List<T>> twoDArrayToListOfLists(T[][] twoDArray) {
         List<List<T>> list = new ArrayList<>();
         for (T[] array : twoDArray) {
-            List<T> innerList = new ArrayList<>();
-            innerList.addAll(Arrays.asList(array));
+            List<T> innerList = new ArrayList<>(Arrays.asList(array));
             list.add(innerList);
         }
         return list;
     }
 }
-
