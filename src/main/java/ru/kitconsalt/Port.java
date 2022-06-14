@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Port {
-    String[] indexes;
+    public String[] indexes;
 
     public Port(String[] indexes) {
         if (indexes == null || indexes.length == 0) {
